@@ -42,3 +42,6 @@ desktop.ini
 
 # Prophet / cmdstan temp output
 *.stan.csv
+
+# Third-party design reference images (inspiration only, not redistributable)
+docs/design-refs/
