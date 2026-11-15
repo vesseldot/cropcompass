@@ -143,11 +143,14 @@ python -m core.periodos      # clean data + 21-day table (data/clean, data/proce
 python -m core.indicadores   # zone diagnosis (data/processed/diagnostico.json)
 python -m core.pronostico    # model comparison + 2026 forecast (~20 s)
 python -m core.rotaciones    # rotation ranking in the console
-pytest                       # 98 tests, including headless runs of the app (zones, Spanish, dark, guide)
+pytest                       # 107 tests, including headless runs of the app (zones, Spanish, dark, guide)
 ```
 
 **Deploying on Streamlit Community Cloud:** push the repository to GitHub, create an app with main file
-`app/streamlit_app.py`, and choose Python 3.11 under *Advanced settings*. Static hosts and serverless platforms such
+`app/streamlit_app.py`, and choose **Python 3.11** under *Advanced settings* (3.12 also installs; 3.13 does not,
+because `numpy==1.26.4` has no 3.13 wheels). No secrets are needed. The satellite basemap style is served from
+`app/static/` through `enableStaticServing` in `.streamlit/config.toml`, and the map tiles load from Esri in the
+visitor's browser. Static hosts and serverless platforms such
 as Vercel do not fit: Streamlit needs a long-running server with a websocket, and Prophet's bundled CmdStan exceeds
 typical serverless function size limits.
 
