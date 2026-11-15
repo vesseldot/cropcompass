@@ -124,6 +124,9 @@ pip install -r requirements.txt
 streamlit run app/streamlit_app.py      # open http://localhost:8501
 ```
 
+On Windows, clone into a short path (e.g. `C:\dev\fieldshift`): Prophet bundles CmdStan with very long file paths,
+and `pip install` fails if the project folder is deeply nested and long paths are not enabled.
+
 The processed data and forecasts are committed, so the app starts without retraining. To rebuild everything from `data/raw/`:
 
 ```bash
@@ -174,7 +177,7 @@ tests/          pytest suite             docs/            screenshots
 
 ## AI tools used
 
-- **Claude Code** (Anthropic, model Claude Opus 5.5) wrote the code, tests, data-download script and this README,
+- **Claude Code** (Anthropic; models Claude Opus 5.5 and Claude Fable 5.2) wrote the code, tests, data-download script and this README,
   working phase by phase from a plan and a project brief (`CLAUDE.md`) written by the team. The team made the product
   and design decisions (zones, irrigation, which phases to run or skip, adding crop diversity to the soil criterion)
   and approved each phase.
