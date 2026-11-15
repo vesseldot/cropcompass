@@ -295,6 +295,19 @@ ES = {
     "This tool supports, not replaces, farmer judgment.":
         "NASA Space Apps Challenge 2026 · Field Shift: Adapting Farms with NASA Data · "
         "Esta herramienta apoya, no sustituye, el criterio del agricultor.",
+    # ------------------------------------------------------------ mapa héroe
+    "worked {ok}/{total} yrs": "funcionó {ok}/{total} años",
+    "no result yet": "sin resultado aún",
+    "Zones are drawn as approximate ~2 km analysis squares around each point, not real field boundaries.":
+        "Las zonas se dibujan como cuadros de análisis aproximados de ~2 km alrededor de cada punto, "
+        "no como límites reales de parcelas.",
+    "Could not draw the map: {e}": "No se pudo dibujar el mapa: {e}",
+    # ------------------------------------------------------------ panel, insight y tarjetas
+    "In {zona}, {n_bare} of 17 periods usually leave bare soil, {n_heat} carry heat risk and "
+    "{n_frost} frost risk. The driest year was {anio} ({mm:.0f} mm of rain).":
+        "En {zona}, {n_bare} de 17 periodos suelen dejar el suelo desnudo, {n_heat} tienen riesgo de calor y "
+        "{n_frost} de helada. El año más seco fue {anio} ({mm:.0f} mm de lluvia).",
+    "Worked in {ok} of {total} years (2020-2025)": "Funcionó en {ok} de {total} años (2020-2025)",
 }
 
 

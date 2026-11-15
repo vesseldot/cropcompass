@@ -1,0 +1,185 @@
+/* CropCompass · base visual (DESIGN.md §3-5). Un solo bloque, cargado una vez desde streamlit_app.py.
+   Solo tokens, tipografía, forma y limpieza de chrome: sin cambios de layout. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+
+:root {
+  /* §3 paleta */
+  --forest-900: #1C2A1E;
+  --forest-700: #2F4A32;
+  --field-amber: #E8B53A;
+  --action-orange: #EF6A2A;
+  --sky-blue: #1F5FA8;
+  --panel: rgba(250, 250, 246, 0.94);   /* DESIGN pide 0.88; sobre satélite oscuro el texto secundario bajaba de AA */
+  --muted: #6B7266;
+  --ok: #3E8E4E;
+  --warn: #D9A21B;
+  --risk: #C2452D;
+  --line: rgba(28, 42, 30, 0.12);
+
+  /* §5 forma y profundidad */
+  --r-panel: 20px;
+  --r-card: 16px;
+  --r-control: 12px;
+  --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.18);
+  --s1: 8px; --s2: 16px; --s3: 24px; --s4: 32px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* §4 tipografía */
+html, body, .stApp, [data-testid="stSidebar"], button, input, textarea, select {
+  font-family: "Inter", system-ui, sans-serif;
+}
+.stApp { font-size: 15px; font-variant-numeric: tabular-nums; }
+h1, h2, h3 { font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: 28px; }
+h2 { font-size: 24px; }
+h3 { font-size: 22px; }
+[data-testid="stCaptionContainer"], label p { font-size: 13px; }
+[data-testid="stMetricValue"] { font-weight: 800; font-variant-numeric: tabular-nums; }
+[data-testid="stMetricLabel"] p {
+  font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+/* Chrome de Streamlit fuera: menú, pie, decoración. La cabecera se conserva transparente
+   porque aloja el botón para abrir la barra lateral. */
+#MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"],
+[data-testid="stStatusWidget"] { display: none !important; visibility: hidden; }
+header[data-testid="stHeader"] { background: transparent; }
+
+/* Radios */
+[data-testid="stSidebar"] { border-right: 1px solid var(--line); }
+div[data-baseweb="select"] > div, div[data-baseweb="input"], textarea,
+[data-testid="stNumberInput"] input { border-radius: var(--r-control); }
+.stButton > button, .stFormSubmitButton > button, [data-testid="stBaseButton-secondary"],
+[data-testid="stBaseButton-primary"], [data-testid="stBaseButton-secondaryFormSubmit"],
+[data-testid="stBaseButton-primaryFormSubmit"] {
+  border-radius: var(--r-control); font-weight: 600;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease),
+    box-shadow 150ms var(--ease);
+}
+[data-testid="stBaseButton-secondary"]:hover, [data-testid="stPopover"] button:hover {
+  border-color: var(--accent); color: var(--accent); background-color: rgba(47, 74, 50, 0.04);
+}
+[data-testid="stVerticalBlockBorderWrapper"] { border-radius: var(--r-card); border-color: var(--line); }
+[data-testid="stForm"] { border-radius: var(--r-panel); border-color: var(--line); }
+[data-testid="stExpander"] details { border-radius: var(--r-card); border-color: var(--line); }
+[data-testid="stAlert"] { border-radius: var(--r-control); }
+[data-testid="stDataFrame"], [data-testid="stPlotlyChart"] { border-radius: var(--r-control); }
+
+/* Único botón de acción: naranja con texto oscuro (≥4.5:1; el blanco sobre #EF6A2A no llega a AA) */
+[data-testid="stBaseButton-primary"], [data-testid="stBaseButton-primaryFormSubmit"] {
+  background-color: var(--action-orange); border-color: var(--action-orange); color: var(--forest-900);
+}
+[data-testid="stBaseButton-primary"]:hover, [data-testid="stBaseButton-primaryFormSubmit"]:hover {
+  background-color: #F27C42; border-color: #F27C42; color: var(--forest-900);
+  box-shadow: 0 2px 8px rgba(239, 106, 42, 0.35);
+}
+[data-testid="stBaseButton-primary"]:active, [data-testid="stBaseButton-primaryFormSubmit"]:active {
+  background-color: #D95E22; border-color: #D95E22; box-shadow: none;
+}
+[data-testid="stBaseButton-primary"]:focus-visible, [data-testid="stBaseButton-primaryFormSubmit"]:focus-visible,
+button:focus-visible, a:focus-visible { outline: 2px solid var(--sky-blue); outline-offset: 2px; }
+
+/* Superficies del navegador que no dibujamos */
+::selection { background: rgba(232, 181, 58, 0.45); color: var(--forest-900); }
+a { text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* ===================== Fase 4: hero, panel flotante, hoja, chips, insight, tarjetas ===================== */
+:root { --sheet: #ffffff; --card: #ffffff; --panel-solid: #f7f5ee; --accent: #2F4A32;
+  --ink-2: #2F4A32; --muted-strong: #565D52; --line-hover: rgba(47, 74, 50, 0.35); }
+[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] > [data-testid="stMarkdownContainer"] > style) { display: none; }
+.block-container { padding-top: 1.5rem; max-width: 1400px; }
+
+/* Cabecera compacta: la marca no compite con el mapa ni con la decisión (DESIGN §4: títulos 22-28 px) */
+.block-container h1 { font-size: 28px !important; font-weight: 800 !important; padding: 0 !important; letter-spacing: -0.02em; }
+
+/* Texto secundario legible (AA): el gris por defecto de Streamlit (#83858c) da 3.7:1 */
+/* Streamlit además le pone opacity:0.6 al contenedor: sin quitarla, el token se ve al 60 % (2.4:1) */
+[data-testid="stCaptionContainer"] { opacity: 1 !important; }
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p { color: var(--muted); }
+.st-key-panel_analisis [data-testid="stCaptionContainer"],
+.st-key-panel_analisis [data-testid="stCaptionContainer"] p { color: var(--muted-strong); }
+
+/* Mapa héroe con el panel encima (position:absolute relativo a .st-key-hero) */
+.st-key-hero { position: relative; }
+.st-key-mapa_heroe { gap: var(--s1); }
+.st-key-mapa_heroe [data-testid="stDeckGlJsonChart"] { border-radius: var(--r-panel); overflow: hidden; box-shadow: var(--shadow-panel); }
+.st-key-mapa_heroe [data-testid="stCaptionContainer"] { padding: 0 var(--s1); }
+.st-key-panel_analisis {
+  position: absolute; top: 16px; left: 16px; z-index: 5; width: 344px; max-height: 588px; overflow-y: auto;
+  padding: var(--s2); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-panel);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: var(--shadow-panel);
+  scrollbar-width: thin;
+}
+.st-key-panel_analisis [data-testid="stForm"] { border: 0; padding: 0; }
+/* Analyze siempre visible: fijo al pie del panel aunque el formulario haga scroll */
+.st-key-panel_analisis [data-testid="stElementContainer"]:has([data-testid="stFormSubmitButton"]) {
+  position: sticky; bottom: calc(-1 * var(--s2)); z-index: 2; margin: 0 calc(-1 * var(--s2));
+  width: calc(100% + 2 * var(--s2)) !important; max-width: none !important;   /* de borde a borde del panel */
+  padding: 12px var(--s2) var(--s2); background: var(--panel-solid); border-top: 1px solid var(--line);
+}
+.st-key-panel_analisis [data-testid="stFormSubmitButton"] button { min-height: 44px; font-size: 16px; }
+.st-key-panel_analisis [data-testid="stVerticalBlock"] { gap: 0.6rem; }
+/* Streamlit 1.40 pinta los extremos del slider (0 / 10) en monoespaciada: misma familia que el resto */
+[data-testid="stSliderTickBarMin"], [data-testid="stSliderTickBarMax"] {
+  font-family: "Inter", system-ui, sans-serif; font-size: 12px; color: var(--muted);
+}
+.panel-titulo { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+@media (max-width: 900px) {      /* en pantallas estrechas el panel pasa encima del mapa, sin flotar */
+  .st-key-panel_analisis { position: static; order: -1; width: auto; max-height: none; }
+}
+
+/* Hoja de resultados (6.3) */
+.st-key-hoja {
+  padding: var(--s3) var(--s3) var(--s2); background: var(--sheet); border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+}
+[data-baseweb="tab-list"] { gap: var(--s1); }
+[data-baseweb="tab"] { font-weight: 600; border-radius: var(--r-control) var(--r-control) 0 0; }
+[data-baseweb="tab"] p { font-size: 15px; }
+[data-baseweb="tab-highlight"] { background-color: var(--accent); height: 3px; }
+
+/* Tono de estado: siempre acompañado de icono o texto */
+.tono-ok { color: var(--ok); } .tono-warn { color: #8a6a00; } .tono-risk { color: var(--risk); } .tono-info { color: var(--sky-blue); }
+
+/* Insight (6.6) y chips de métricas (6.5). Ya están dentro de la hoja (una superficie): sin cajas propias,
+   para no anidar tarjetas. El insight es la frase principal de la hoja; los chips, una franja con divisores. */
+.insight {
+  display: flex; gap: var(--s2); align-items: flex-start; padding: 0 0 var(--s2); color: var(--ink-2);
+}
+.insight p { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.45; max-width: 70ch; color: inherit; text-wrap: pretty; }
+.insight svg { flex: none; margin-top: 3px; }
+.chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: var(--s3);
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.chip-m { padding: var(--s2) var(--s2) var(--s2) 0; }
+.chip-m + .chip-m { padding-left: var(--s2); border-left: 1px solid var(--line); }
+@media (max-width: 900px) { .chip-m + .chip-m { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); } }
+.chip-ico { display: inline-flex; }
+.chip-val { font-size: clamp(28px, 2.6vw, 40px); font-weight: 800; line-height: 1.1; margin-top: var(--s1);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip-lbl { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+/* Tarjeta de rotación (6.4) */
+[class*="st-key-rot_"] { background: var(--card); border: 1px solid var(--line) !important; border-radius: var(--r-card);
+  box-shadow: none; transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease); }
+[class*="st-key-rot_"]:hover { border-color: var(--line-hover) !important; box-shadow: 0 2px 12px rgba(28, 42, 30, 0.06); }
+.rot-titulo { font-size: 22px; font-weight: 700; line-height: 1.2; }
+.rot-rango { color: var(--muted); font-weight: 600; }
+.chip-actual { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 2px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  background: var(--sky-blue); color: #fff; }
+.score { display: flex; align-items: baseline; gap: 4px; margin-top: var(--s1); }
+.score-num { font-size: 56px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.score-max { font-size: 16px; font-weight: 600; color: var(--muted); }
+.score-delta { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: var(--s1); }
+.chip-estado { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; border: 1px solid currentColor; }
+.apilada { display: flex; gap: 2px; height: 16px; border-radius: 8px; overflow: hidden; background: var(--line); }
+.apilada span { display: block; min-width: 0; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: var(--s1); font-size: 13px; }
+.ley { display: inline-flex; align-items: center; gap: 6px; }
+.ley i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }

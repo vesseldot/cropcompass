@@ -1,5 +1,17 @@
 [theme]
+# Solo base y color de acción: el modo oscuro de la app cambia theme.base en caliente,
+# y un backgroundColor/textColor fijo lo rompería. Los demás tokens viven en app/estilos.css.
 base = "light"
+# Color de selección de los controles (sliders, radios, pestañas): --forest-700. El naranja de acción
+# (--action-orange) solo lo lleva el botón Analyze vía app/estilos.css. La app lo cambia en modo oscuro.
+primaryColor = "#2F4A32"
+
+[server]
+# sirve app/static/ en <url>/app/static/ (estilo del mapa satelital, ver app/mapa.py)
+enableStaticServing = true
+
+[client]
+toolbarMode = "minimal"
 
 [browser]
 gatherUsageStats = false

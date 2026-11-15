@@ -14,17 +14,17 @@ def _correr(zona="axochiapan", riego="default", pesos=(5, 5, 5, 5), idioma="Engl
     at.run()
     cod = {"English": "en", "Español": "es"}[idioma]
     if idioma != "English":
-        at.sidebar.selectbox(key="idioma").set_value(idioma)
+        at.selectbox(key="idioma").set_value(idioma)
         at.run()
     if oscuro:
-        at.sidebar.toggle(key=f"oscuro_{cod}").set_value(True)
+        at.toggle(key=f"oscuro_{cod}").set_value(True)
     if guia:
-        at.sidebar.toggle(key=f"guia_{cod}").set_value(True)
-    at.sidebar.selectbox(key=f"zona_{cod}").set_value(zona)
-    at.sidebar.radio(key=f"riego_{cod}").set_value(riego)
+        at.toggle(key=f"guia_{cod}").set_value(True)
+    at.selectbox(key=f"zona_{cod}").set_value(zona)
+    at.radio(key=f"riego_{cod}").set_value(riego)
     for clave, valor in zip(("w_agua", "w_suelo", "w_ingreso", "w_clima"), pesos):
-        at.sidebar.slider(key=f"{clave}_{cod}").set_value(valor)
-    at.sidebar.button[0].click()
+        at.slider(key=f"{clave}_{cod}").set_value(valor)
+    next(b for b in at.button if b.label in ("Analyze", "Analizar")).click()
     at.run()
     return at
 
@@ -74,11 +74,11 @@ def test_app_en_espanol(zona):
 
 def test_cambiar_idioma_conserva_la_seleccion():
     at = _correr("cuautla", riego="rainfed", pesos=(9, 1, 2, 3))
-    at.sidebar.selectbox(key="idioma").set_value("Español")
+    at.selectbox(key="idioma").set_value("Español")
     at.run()
-    assert at.sidebar.selectbox(key="zona_es").value == "cuautla"
-    assert at.sidebar.radio(key="riego_es").value == "rainfed"
-    assert at.sidebar.slider(key="w_agua_es").value == 9
+    assert at.selectbox(key="zona_es").value == "cuautla"
+    assert at.radio(key="riego_es").value == "rainfed"
+    assert at.slider(key="w_agua_es").value == 9
     assert _problemas(at) == []
 
 
@@ -94,10 +94,10 @@ def test_app_modo_oscuro_y_guia(idioma):
 
 def test_cambiar_de_tema_conserva_la_zona_elegida():
     at = _correr("cuautla", riego="rainfed")
-    at.sidebar.toggle(key="oscuro_en").set_value(True)
+    at.toggle(key="oscuro_en").set_value(True)
     at.run()
-    assert at.sidebar.selectbox(key="zona_en").value == "cuautla"
-    assert at.sidebar.radio(key="riego_en").value == "rainfed"
+    assert at.selectbox(key="zona_en").value == "cuautla"
+    assert at.radio(key="riego_en").value == "rainfed"
     assert any("**Cuautla**" in c.value for c in at.caption)      # el análisis sigue siendo de Cuautla
     assert _problemas(at) == []
 

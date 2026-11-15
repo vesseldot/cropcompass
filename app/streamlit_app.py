@@ -6,6 +6,7 @@ Ejecutar:   streamlit run app/streamlit_app.py
 from __future__ import annotations
 
 import sys
+from html import escape
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -25,6 +26,8 @@ from core import indicadores as I
 from core import periodos as P
 from core import pronostico as F
 from core import rotaciones as R
+from app import componentes as CP
+from app import mapa as M
 
 APP_TITLE = "CropCompass"   # nombre del proyecto
 
@@ -55,7 +58,24 @@ VARIABLES = {"precip_mm_21d": "Rainfall (mm per 21 days)", "ndvi": "NDVI (vegeta
 OPCIONES_RIEGO = {"default": "Zone default", "irrigated": "Irrigated", "rainfed": "Rainfed"}
 P_CORTAS = [f"P{p:02d}" for p in range(1, 18)]
 
-st.set_page_config(page_title=APP_TITLE, page_icon="🌱", layout="wide")
+st.set_page_config(page_title=APP_TITLE, page_icon="🌱", layout="wide", initial_sidebar_state="collapsed")
+
+# Base visual (DESIGN.md §3-5): un solo bloque CSS, cargado una vez por ejecución. Se rellena más abajo,
+# cuando ya se sabe si el modo oscuro está activo (cambia los tokens de panel y hoja).
+slot_css = st.empty()
+CSS_BASE = Path(__file__).with_name("estilos.css").read_text(encoding="utf-8")
+CSS_OSCURO = (":root{--panel:rgba(18,24,19,0.94);--panel-solid:#151b16;--sheet:#0e1117;--accent:#8FC79A;"
+              "--ink-2:#c9d3c4;--muted-strong:#b4bcae;--forest-700:#8FC79A;--card:#161b22;--line:rgba(255,255,255,0.14);"
+              "--muted:#9aa395;--line-hover:rgba(143,199,154,0.45);--shadow-panel:0 8px 32px rgba(0,0,0,0.5);}")
+
+# Esqueleto de la página (DESIGN.md §6): cabecera, mapa héroe con el panel flotante encima, hoja de resultados.
+# Se declaran aquí, en orden visual, y se rellenan donde estén sus datos.
+cabecera = st.container()
+hero = st.container(key="hero")
+with hero:
+    slot_mapa = st.container(key="mapa_heroe")
+    panel = st.container(key="panel_analisis")
+hoja = st.container(key="hoja")
 
 
 # ---------------------------------------------------------------- datos (cacheados)
@@ -109,7 +129,9 @@ sel = st.session_state.setdefault("sel", {
     "riego": "default", "agua": 5, "suelo": 5, "ingreso": 5, "clima": 5, "umbral": I.UMBRAL_NDVI_DESNUDO,
     "variable": "precip_mm_21d"})
 
-with st.sidebar:
+with panel:
+    ajustes = st.popover("Settings / Ajustes", use_container_width=True)
+with ajustes:
     nombres_idioma = list(i18n.IDIOMAS)
     idioma = i18n.IDIOMAS[st.selectbox("Language / Idioma", nombres_idioma, key="idioma")]
 
@@ -144,7 +166,7 @@ def nc(e: dict) -> str:
     return e.get("cultivo_es", e["cultivo"]) if idioma == "es" else e["cultivo"]
 
 
-with st.sidebar:
+with ajustes:
     oscuro = st.toggle(T("Dark mode"), value=defs["oscuro"], key=f"oscuro_{idioma}")
     guia = st.toggle(T("Guide mode"), value=defs["guia"], key=f"guia_{idioma}")
 sel.update(oscuro=oscuro, guia=guia)
@@ -154,14 +176,20 @@ sel.update(oscuro=oscuro, guia=guia)
 # La re-ejecución se hace AL FINAL del script: si se interrumpe antes de dibujar el formulario,
 # Streamlit descarta el estado de los controles no dibujados y se pierde la zona elegida.
 _base = "dark" if oscuro else "light"
+# Color de selección (sliders, radios, pestaña activa): verde bosque, NO naranja. El naranja queda solo para
+# Analyze (DESIGN.md §3, lo pinta estilos.css). En oscuro, un verde claro para mantener contraste AA.
+_primario = "#8FC79A" if oscuro else "#2F4A32"
 try:
-    _cambiar_tema = st_config.get_option("theme.base") != _base
+    _cambiar_tema = (st_config.get_option("theme.base") != _base
+                     or st_config.get_option("theme.primaryColor") != _primario)
     if _cambiar_tema:
         st_config.set_option("theme.base", _base)
+        st_config.set_option("theme.primaryColor", _primario)
 except Exception:
     _cambiar_tema = False
 
 PAL = PALETAS[oscuro]
+slot_css.markdown(f"<style>{CSS_BASE}{CSS_OSCURO if oscuro else ''}</style>", unsafe_allow_html=True)
 
 
 def nota_guia(nombre: str) -> None:
@@ -294,7 +322,9 @@ def figura_calendario(r: dict) -> go.Figure:
         fig.add_scatter(x=[P_CORTAS[p - 1] for p in r["desnudos_zona"]], y=[filas[-1]] * len(r["desnudos_zona"]),
                         mode="markers", marker=dict(symbol="square", size=16, color=PAL["gris"]),
                         name=T("Bare soil today"), hovertemplate=T("Bare soil today") + "<br>%{x}<extra></extra>")
+    # fondo transparente: el calendario vive dentro de la tarjeta y no debe verse como otra caja (modo oscuro)
     fig.update_layout(height=50 + 32 * len(filas), showlegend=False, margin=dict(t=5, b=5, l=5, r=5),
+                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                       xaxis=dict(categoryorder="array", categoryarray=P_CORTAS, range=[-0.5, 16.5],
                                  tickmode="array", tickvals=P_CORTAS[::4], tickangle=0, tickfont=dict(size=10)),
                       yaxis=dict(categoryorder="array", categoryarray=filas[::-1]))
@@ -303,9 +333,9 @@ def figura_calendario(r: dict) -> go.Figure:
 
 # ---------------------------------------------------------------- barra lateral: formulario
 
-with st.sidebar:
-    st.header(T("Your farm"))
-    with st.form("entrada"):
+with panel:
+    st.markdown(f'<div class="panel-titulo">{T("Your farm")}</div>', unsafe_allow_html=True)
+    with st.form("entrada", border=False):
         zona = st.selectbox(T("Zone (Morelos, Mexico)"), ZONAS_IDS, index=ZONAS_IDS.index(defs["zona"]),
                             format_func=lambda z: ZONA_INFO.loc[z, "nombre"], key=f"zona_{idioma}")
         opciones_cultivo = ["__zona__"] + CULTIVOS_ACTUALES
@@ -319,10 +349,13 @@ with st.sidebar:
         st.markdown(T("**Your priorities** (relative weights)"))
         if guia:
             st.caption(i18n.bloque("guia_prioridades", idioma))
-        w_agua = st.slider(T("Water saving"), 0, 10, defs["agua"], key=f"w_agua_{idioma}")
-        w_suelo = st.slider(T("Soil health"), 0, 10, defs["suelo"], key=f"w_suelo_{idioma}")
-        w_ingreso = st.slider(T("Income"), 0, 10, defs["ingreso"], key=f"w_ingreso_{idioma}")
-        w_clima = st.slider(T("Climate fit"), 0, 10, defs["clima"], key=f"w_clima_{idioma}")
+        col_a, col_b = st.columns(2)
+        with col_a:
+            w_agua = st.slider(T("Water saving"), 0, 10, defs["agua"], key=f"w_agua_{idioma}")
+            w_ingreso = st.slider(T("Income"), 0, 10, defs["ingreso"], key=f"w_ingreso_{idioma}")
+        with col_b:
+            w_suelo = st.slider(T("Soil health"), 0, 10, defs["suelo"], key=f"w_suelo_{idioma}")
+            w_clima = st.slider(T("Climate fit"), 0, 10, defs["clima"], key=f"w_clima_{idioma}")
         with st.expander(T("Advanced")):
             umbral_ndvi = st.slider(
                 T("Bare-soil NDVI threshold"), 0.15, 0.45, defs["umbral"], 0.01, key=f"umbral_{idioma}",
@@ -343,17 +376,46 @@ aviso_zona = info.get("aviso_es") if idioma == "es" and isinstance(info.get("avi
 
 # ---------------------------------------------------------------- cabecera
 
-st.title(f"🌱 {APP_TITLE}")
-st.markdown(T("Decision support for crop rotations in **sugarcane areas of Morelos, Mexico**, built on NASA "
-              "satellite data summarized in **21-day periods** (17 per year, 2020-2025)."))
-pesos_n = R.normalizar_pesos(pesos)
-st.caption(f"**{info['nombre']}** · {T('current crop')}: **{nombre_cultivo(cultivo_efectivo)}** · "
-           f"{T('irrigated') if riego_efectivo else T('rainfed')} · {T('priorities')}: "
-           + ", ".join(f"{T(NOMBRE_CRITERIO[c]).lower()} {pesos_n[c]:.0%}" for c in ("water", "soil", "income", "climate")))
-nota_guia("guia_inicio")
+with cabecera:
+    st.title(APP_TITLE)       # el 🌱 queda en la pestaña del navegador (page_icon), no como logo
+    st.markdown(T("Decision support for crop rotations in **sugarcane areas of Morelos, Mexico**, built on NASA "
+                  "satellite data summarized in **21-day periods** (17 per year, 2020-2025)."))
+    pesos_n = R.normalizar_pesos(pesos)
+    st.caption(f"**{info['nombre']}** · {T('current crop')}: **{nombre_cultivo(cultivo_efectivo)}** · "
+               f"{T('irrigated') if riego_efectivo else T('rainfed')} · {T('priorities')}: "
+               + ", ".join(f"{T(NOMBRE_CRITERIO[c]).lower()} {pesos_n[c]:.0%}"
+                           for c in ("water", "soil", "income", "climate")))
+    nota_guia("guia_inicio")
 
-tab_diag, tab_prono, tab_rot, tab_metodo = st.tabs(
-    [T("Diagnosis"), T("Forecast"), T("Rotations"), T("Data & Method")])
+# ---------------------------------------------------------------- hoja de resultados: insight, chips y pestañas
+
+with hoja:
+    try:
+        d0 = diagnostico(zona, umbral_ndvi)
+        et0, t0 = d0["etiquetas"], d0["temporal"]
+        seco0 = min(d0["lluvia_anual"], key=d0["lluvia_anual"].get)
+        st.markdown(CP.tarjeta_insight(
+            T("In {zona}, {n_bare} of 17 periods usually leave bare soil, {n_heat} carry heat risk and "
+              "{n_frost} frost risk. The driest year was {anio} ({mm:.0f} mm of rain).").format(
+                zona=info["nombre"], n_bare=len(d0["suelo_desnudo"]), n_heat=len(d0["calor"]),
+                n_frost=len(d0["helada"]), anio=seco0, mm=d0["lluvia_anual"][seco0])), unsafe_allow_html=True)
+        st.markdown(CP.fila_chips([
+            CP.chip_metrica("lluvia", f"{et0[t0['inicio']][:3]} → {et0[t0['fin']][:3]}" if t0 else T("No data"),
+                            T("Rainy season"), T("First and last 21-day period with > 35 mm on average"), "info"),
+            CP.chip_metrica("suelo", len(d0["suelo_desnudo"]), T("Bare-soil periods"),
+                            T("Periods with mean NDVI below the threshold"), "warn"),
+            CP.chip_metrica("calor", len(d0["calor"]), T("Heat-risk periods"),
+                            T("≥ 3 days with Tmax ≥ 35 °C on average"), "risk"),
+            CP.chip_metrica("helada", len(d0["helada"]), T("Frost-risk periods"),
+                            T("Any day with Tmin ≤ 2 °C on average"), "info"),
+            CP.chip_metrica("calendario", seco0, T("Driest year ({mm:.0f} mm)").format(mm=d0["lluvia_anual"][seco0]),
+                            T("Lowest annual rainfall (GPM IMERG) in 2020-2025"), "warn"),
+        ]), unsafe_allow_html=True)
+    except Exception as e:
+        st.warning(T("Could not build the diagnosis for this zone: {e}").format(e=e))
+
+    tab_diag, tab_prono, tab_rot, tab_metodo = st.tabs(
+        [T("Diagnosis"), T("Forecast"), T("Rotations"), T("Data & Method")])
 
 # ---------------------------------------------------------------- Data & Method (primero: el editor alimenta el ranking)
 
@@ -428,27 +490,11 @@ with tab_metodo:
 with tab_diag:
     try:
         nota_guia("guia_diagnosis")
-        diag = diagnostico(zona, umbral_ndvi)
-        et = diag["etiquetas"]
-        t = diag["temporal"]
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric(T("Rainy season"), f"{et[t['inicio']][:3]} → {et[t['fin']][:3]}" if t else T("No data"),
-                  help=T("First and last 21-day period with > 35 mm on average"))
-        c2.metric(T("Bare-soil periods"), len(diag["suelo_desnudo"]),
-                  help=T("Periods with mean NDVI below the threshold"))
-        c3.metric(T("Heat-risk periods"), len(diag["calor"]), help=T("≥ 3 days with Tmax ≥ 35 °C on average"))
-        c4.metric(T("Frost-risk periods"), len(diag["helada"]), help=T("Any day with Tmin ≤ 2 °C on average"))
-        seco = min(diag["lluvia_anual"], key=diag["lluvia_anual"].get)
-        c5.metric(T("Driest year ({mm:.0f} mm)").format(mm=diag["lluvia_anual"][seco]), str(seco),
-                  help=T("Lowest annual rainfall (GPM IMERG) in 2020-2025"))
-
+        diag = diagnostico(zona, umbral_ndvi)      # los chips de métricas están arriba, en la cabecera de la hoja
         izq, der = st.columns([3, 1])
         with izq:
             st.plotly_chart(figura_diagnostico(diag), use_container_width=True, key="fig_diag")
         with der:
-            puntos = ZONAS.assign(size=lambda d: d["id"].eq(zona).map({True: 2500, False: 1200}),
-                                  color=lambda d: d["id"].eq(zona).map({True: PAL["lluvia"], False: PAL["gris"]}))
-            st.map(puntos, latitude="lat", longitude="lon", size="size", color="color", zoom=8)
             if isinstance(aviso_zona, str):
                 st.warning(aviso_zona, icon="⚠️")
 
@@ -559,17 +605,19 @@ with tab_rot:
                                        for r in res]), hide_index=True, use_container_width=True)
 
         for r in res:
-            with st.container(border=True):
-                c1, c2, c3 = st.columns([2.1, 1.9, 2.6])
+            with st.container(border=True, key=f"rot_{r['id']}"):
+                c1, c2, c3 = st.columns([2.0, 2.2, 2.6])
                 with c1:
-                    etiqueta = f" :blue-background[{T('current')}]" if r["es_actual"] else ""
-                    st.markdown(f"#### #{r['rango']} {nr(r)}{etiqueta}")
+                    marca = f'<span class="chip-actual">{escape(T("current"))}</span>' if r["es_actual"] else ""
+                    st.markdown(f'<div class="rot-titulo"><span class="rot-rango">#{r["rango"]}</span> '
+                                f'{escape(nr(r))} {marca}</div>', unsafe_allow_html=True)
                     delta = None if r["es_actual"] or actual is None else \
                         T("{dif:+.0f} vs current").format(dif=r["puntaje"] - actual["puntaje"])
-                    st.metric(T("Score"), f"{r['puntaje']:.0f}/100", delta)
+                    st.markdown(CP.puntaje_grande(r["puntaje"], delta), unsafe_allow_html=True)
                     bt = r["backtest"]
-                    st.markdown(T("**Worked in {ok} of {total} years** (2020-2025)").format(
-                        ok=bt["anios_ok"], total=bt["anios_total"]))
+                    st.markdown(CP.chip_estado(
+                        T("Worked in {ok} of {total} years (2020-2025)").format(ok=bt["anios_ok"], total=bt["anios_total"]),
+                        CP.tono_funciono(bt["anios_ok"], bt["anios_total"])), unsafe_allow_html=True)
                     for d in bt["fallidos"]:
                         cultivo = next((nc(e) for e in r["etapas"] if e["cultivo_id"] == d["cultivo_limitante"]),
                                        d["cultivo_limitante"])
@@ -581,11 +629,12 @@ with tab_rot:
                         st.caption(T("{anio} outlook (forecast rain): {estado} (min suitability {aptitud:.2f})").format(
                             anio=o["anio"], estado=T("viable") if o["ok"] else T("at risk"), aptitud=o["aptitud_min"]))
                 with c2:
-                    for c in ("climate", "water", "soil", "income"):
-                        v = r["criterios"][c]
-                        st.progress(min(max(v, 0.0), 1.0),
-                                    text=T("{criterio}: {valor:.2f} · weight {peso:.0%}").format(
-                                        criterio=T(NOMBRE_CRITERIO[c]), valor=v, peso=r["pesos"][c]))
+                    st.caption(T("Score (0-100) = sum of weighted criteria"))
+                    st.markdown(CP.barra_apilada([
+                        (T(NOMBRE_CRITERIO[c]), r["contribuciones"][c], PAL["criterio"][c],
+                         T("{criterio}: {valor:.2f} · weight {peso:.0%}").format(
+                             criterio=T(NOMBRE_CRITERIO[c]), valor=r["criterios"][c], peso=r["pesos"][c]))
+                        for c in ("climate", "water", "soil", "income")]), unsafe_allow_html=True)
                 with c3:
                     st.caption(T("Crop calendar (21-day periods)"))
                     st.plotly_chart(figura_calendario(r), use_container_width=True, key=f"cal_{r['id']}",
@@ -599,6 +648,35 @@ with tab_rot:
                     st.caption(exp["disclaimer"])
     except Exception as e:
         st.warning(T("Could not score the rotations: {e}").format(e=e))
+
+# ---------------------------------------------------------------- mapa héroe (arriba, rellenado al final)
+
+def etiqueta_mapa(z: str) -> str:
+    """'Zacatepec\\nSugarcane · worked 5/6 yrs'. Zona elegida: sus ajustes; las demás: sus valores por defecto."""
+    nombre_z = ZONA_INFO.loc[z, "nombre"]
+    cultivo = cultivo_efectivo if z == zona else list(ZONA_INFO.loc[z, "cultivos_actuales"])[0]
+    try:
+        if z == zona and "res" in globals():
+            filas = res
+        else:
+            filas = ranking(z, tuple(sorted(pesos.items())), None, riego if z == zona else None,
+                            umbral_ndvi, cultivos_usados, idioma)
+        bt = next(r for r in filas if r["es_actual"])["backtest"]
+        dato = T("worked {ok}/{total} yrs").format(ok=bt["anios_ok"], total=bt["anios_total"])
+    except Exception:
+        dato = T("no result yet")
+    return f"{nombre_z}\n{nombre_cultivo(cultivo)} · {dato}"
+
+
+with slot_mapa:
+    try:
+        etiquetas = {z: etiqueta_mapa(z) for z in ZONAS_IDS}
+        st.pydeck_chart(M.construir_mapa(ZONAS, zona, etiquetas), use_container_width=True, height=620)
+        # La atribución de Esri la pinta el propio mapa base (control de MapLibre, abajo a la derecha)
+        st.caption(T("Zones are drawn as approximate ~2 km analysis squares around each point, not real field "
+                     "boundaries."))
+    except Exception as e:
+        st.warning(T("Could not draw the map: {e}").format(e=e))
 
 st.divider()
 st.caption(T("NASA Space Apps Challenge 2026 · Field Shift: Adapting Farms with NASA Data · "
