@@ -175,6 +175,7 @@ def rankear(zona: str, pesos: dict | None = None, serie: pd.DataFrame | None = N
             "suelo_detalle": suelo_partes, "riego": riego,
             "etapas": [{
                 "cultivo_id": e["cultivo_id"], "cultivo": e["cultivo"].get("nombre", e["cultivo_id"]),
+                "tipo": e["cultivo"].get("tipo"), "fija_nitrogeno": bool(e["cultivo"]["fija_nitrogeno"]),
                 "siembra_mes": e["siembra_mes"], "periodos": [p for _, p in e["periodos"]],
                 "inicio": P.etiquetas()[e["periodos"][0][1] - 1], "fin": P.etiquetas()[e["periodos"][-1][1] - 1],
                 **r} for e, r in zip(etapas, apt)],

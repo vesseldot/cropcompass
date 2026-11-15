@@ -88,8 +88,10 @@ def aptitud(cultivo: dict, clima_ciclo: pd.DataFrame, riego: bool) -> dict:
     validos = [x for x in puntos_temp if not np.isnan(x)]
     f_temp = float(np.mean(validos)) if validos else np.nan
     lluvia_total = float(clima_ciclo["precip_mm"].sum(min_count=1))
-    f_lluvia = 1.0 if riego else trapecio(lluvia_total, cultivo["lluvia_abs_min"], cultivo["lluvia_opt_min"],
-                                          cultivo["lluvia_opt_max"], cultivo["lluvia_abs_max"])
+    # Factor de lluvia "de temporal" (sin riego): se guarda siempre para explicar la dependencia del riego
+    f_lluvia_temporal = trapecio(lluvia_total, cultivo["lluvia_abs_min"], cultivo["lluvia_opt_min"],
+                                 cultivo["lluvia_opt_max"], cultivo["lluvia_abs_max"])
+    f_lluvia = 1.0 if riego else f_lluvia_temporal
     heladas = float(clima_ciclo["dias_helada"].sum())
     f_helada = 1.0 if bool(cultivo["tolera_helada"]) else max(0.0, 1.0 - heladas / DIAS_HELADA_FALLA)
 
@@ -104,6 +106,9 @@ def aptitud(cultivo: dict, clima_ciclo: pd.DataFrame, riego: bool) -> dict:
         "limitante": limitante,
         "temp_media_c": float(clima_ciclo["tmedia"].mean()),
         "lluvia_mm": lluvia_total,
+        "lluvia_opt_mm": (float(cultivo["lluvia_opt_min"]), float(cultivo["lluvia_opt_max"])),
+        "temp_opt_c": (float(cultivo["temp_opt_min"]), float(cultivo["temp_opt_max"])),
+        "factor_lluvia_temporal": f_lluvia_temporal,
         "dias_helada": heladas,
         "riego": bool(riego),
         "periodo_temp_mas_limitante": int(clima_ciclo["periodo"].iloc[peor]) if peor is not None else None,
