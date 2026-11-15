@@ -77,6 +77,20 @@ def test_suelo_premia_cubrir_periodos_desnudos_y_omite_si_no_hay():
     assert "bare_periods_covered" not in sin
 
 
+def test_diversidad_monocultivo_mismo_tipo_y_tipos_distintos():
+    cul = {"g1": cultivo(id="g1", tipo="grain"), "g2": cultivo(id="g2", tipo="grain"),
+           "leg": cultivo(id="leg", tipo="legume", ciclo_meses=3, siembra_mes=1)}
+    div = lambda *etapas: R.diversidad(R.etapas_de_rotacion(_rot("x", *etapas), cul))
+    assert div(("g1", 6)) == 0.0
+    assert div(("g1", 6), ("g2", 1)) == 0.5
+    assert div(("g1", 6), ("leg", 1)) == 1.0
+
+
+def test_solo_suelo_no_gana_el_monocultivo_de_cana_con_datos_reales():
+    for zona in ("cuautla", "axochiapan"):
+        assert R.rankear(zona, {"soil": 1})[0]["id"] != "cana_mono"
+
+
 def test_rankear_estructura_actual_y_desglose():
     res = R.rankear("z", None, serie=_serie(ndvi=lambda p: 0.2 if p <= 5 else 0.5),
                     cultivos=CULTIVOS, rotaciones=ROTS, zonas=_zonas())

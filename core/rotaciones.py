@@ -5,8 +5,10 @@ Criterios (0-1, más alto = mejor):
 - water:   1 - demanda de agua del año = Σ agua_relativa × periodos ocupados / 17. Ponderar por tiempo hace
            que agregar un cultivo en secas cuente como MÁS agua (con un promedio simple contaría como menos).
 - soil:    promedio de: fracción de etapas que fijan nitrógeno; cobertura del año (Σ cubre_suelo × periodos / 17);
-           y fracción de los periodos de suelo desnudo de la zona (diagnóstico NDVI) que la rotación ocupa
-           (si la zona no tiene periodos desnudos, esta parte no aplica y no se usa).
+           diversidad de cultivos (0 un solo cultivo, 0.5 dos del mismo tipo, 1 tipos distintos: rompe ciclos
+           de plagas, el monocultivo no gana solo por cubrir el suelo); y fracción de los periodos de suelo
+           desnudo de la zona (diagnóstico NDVI) que la rotación ocupa (si la zona no tiene periodos
+           desnudos, esta parte no aplica y no se usa).
 - income:  promedio de mercado_local de los cultivos de la rotación.
 Puntaje (0-100) = Σ peso_normalizado × criterio × 100.
 
@@ -63,11 +65,19 @@ def criterio_ingreso(etapas: list[dict]) -> float:
     return float(np.mean([float(e["cultivo"]["mercado_local"]) for e in etapas]))
 
 
+def diversidad(etapas: list[dict]) -> float:
+    """0 = un solo cultivo; 0.5 = dos o más cultivos del mismo tipo; 1 = cultivos de tipos distintos."""
+    n_cultivos = len({e["cultivo_id"] for e in etapas})
+    n_tipos = len({e["cultivo"].get("tipo") or e["cultivo_id"] for e in etapas})
+    return float(min(1.0, ((n_cultivos - 1) + (n_tipos - 1)) / 2))
+
+
 def criterio_suelo(etapas: list[dict], desnudos: list[int]) -> tuple[float, dict]:
     partes = {
         "nitrogen_fixing_share": float(np.mean([bool(e["cultivo"]["fija_nitrogeno"]) for e in etapas])),
         "year_round_cover": float(min(1.0, sum(float(e["cultivo"]["cubre_suelo"]) * len(e["periodos"])
                                                for e in etapas) / P.N_PERIODOS)),
+        "crop_diversity": diversidad(etapas),
     }
     if desnudos:
         partes["bare_periods_covered"] = len(set(desnudos) & periodos_ocupados(etapas)) / len(desnudos)
