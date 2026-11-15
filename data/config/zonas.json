@@ -1,0 +1,39 @@
+{
+  "_nota": "Zonas de estudio. lat/lon y cultivo actual vienen de data/raw/satelitacos/datos/resumen.json (equipo). 'riego' = dato del equipo (2026-11-14), pendiente de validar. elevacion_celda_power_m = elevación de la celda MERRA-2 usada por NASA POWER (Lotes/README.MD), no la del terreno.",
+  "zonas": [
+    {
+      "id": "zacatepec",
+      "nombre": "Zacatepec",
+      "lat": 18.655,
+      "lon": -99.19,
+      "cultivos_actuales": ["cana"],
+      "cultivo_actual_texto": "caña de azúcar",
+      "riego": true,
+      "elevacion_celda_power_m": 1355.9,
+      "archivo_power": "data/raw/satelitacos/Lotes/POWER_Point_Daily_20200101_20251231_018d66N_099d19W_UTC.csv"
+    },
+    {
+      "id": "cuautla",
+      "nombre": "Cuautla",
+      "lat": 18.81,
+      "lon": -98.95,
+      "cultivos_actuales": ["sorgo", "maiz"],
+      "cultivo_actual_texto": "sorgo / maíz",
+      "riego": true,
+      "elevacion_celda_power_m": 2120.0,
+      "aviso": "MERRA-2 cell elevation (2,120 m) is well above the farmed valley (~1,300 m); POWER temperatures here are likely ~4 °C too cold.",
+      "archivo_power": "data/raw/satelitacos/Lotes/POWER_Point_Daily_20200101_20251231_018d81N_098d95W_UTC.csv"
+    },
+    {
+      "id": "axochiapan",
+      "nombre": "Axochiapan",
+      "lat": 18.5,
+      "lon": -98.75,
+      "cultivos_actuales": ["sorgo"],
+      "cultivo_actual_texto": "sorgo de temporal",
+      "riego": true,
+      "elevacion_celda_power_m": 1396.8,
+      "archivo_power": "data/raw/satelitacos/Lotes/POWER_Point_Daily_20200101_20251231_018d50N_098d75W_UTC.csv"
+    }
+  ]
+}

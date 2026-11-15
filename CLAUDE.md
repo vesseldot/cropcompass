@@ -61,6 +61,21 @@ ndvi, ndvi_obs (n.º de observaciones reales de NDVI en el periodo), ndvi_interp
 - NDVI: quitar calidad==3, **interpolar linealmente a diario** entre compuestos y promediar por periodo
   (los compuestos son cada 16 días, no coinciden con 21); `ndvi_obs` dice cuánto es dato real.
 
+## Datos reales del proyecto (decisiones 2026-11-14)
+- **3 zonas** (no 5): `zacatepec`, `cuautla`, `axochiapan` → `serie_21d.csv` = 3 × 6 × 17 = **306 filas**.
+- Origen: repo del equipo `NoJumper1/satelitacos` (rama `datasets`), copiado sin editar a `data/raw/satelitacos/`
+  (ver `ORIGEN.txt`). `data/clean/` lo genera `core/datos.py` a partir de `data/raw/`.
+- Clima diario: `data/raw/satelitacos/Lotes/POWER_Point_Daily_*_UTC.csv` (archivo por zona en `zonas.json`).
+  `precip_mm` = `IMERG_PRECTOT`; respaldo `PRECTOTCORR` (columna `precip_fuente`); `tmax_c`/`tmin_c` = `T2M_MAX`/`T2M_MIN`.
+  Los `datos/*_power.csv` (solo PRECTOTCORR, hora local) y `*_mensual.csv` no se usan para cálculo.
+- NDVI: MODIS MOD13Q1 vía API ORNL DAAC → `data/raw/ndvi_modis_ornl/*.json` (ventana ±1 km ≈ 9×9 píxeles;
+  bandas `250m_16_days_NDVI` ×0.0001 y `250m_16_days_pixel_reliability` 0 bueno … 3 nube). Incluye un compuesto
+  antes (A2019353) y otro después (A2026001) del periodo para interpolar los bordes.
+- `resumen.json` del equipo está en **cp1252**, no UTF-8.
+- Riego: las 3 zonas marcadas con riego (dato del equipo, por validar). Ojo: Axochiapan es "sorgo de temporal".
+- Cuautla: la celda MERRA-2 de POWER está a 2,120 m (valle ≈ 1,300 m) → temperaturas ~4 °C más frías. Mostrar como limitación.
+- `cultivos.json` y `rotaciones.json` = borrador de Claude con rangos aproximados tipo EcoCrop → **hipótesis**.
+
 ## Reglas de trabajo
 - Antes de programar, **mostrar el plan** y esperar confirmación si cambia la estructura.
 - Cada módulo de `core/` con **pruebas** en `tests/` y funciones puras (entrada → salida).

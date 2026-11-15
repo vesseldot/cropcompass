@@ -1,0 +1,1 @@
+source: https://github.com/NoJumper1/satelitacos (branch datasets) commit b7831148ccee3e33da9bc2aeca02d875be1fabe9  2026-11-14

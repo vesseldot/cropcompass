@@ -1,0 +1,60 @@
+{
+  "_nota": "Rotaciones anuales candidatas. Cada etapa = cultivo + mes de siembra (si se omite, usa siembra_mes de cultivos.json). 'actual_para' = cultivos para los que esta rotación representa la práctica actual (el motor la marca como 'current'). Una etapa puede cruzar el fin de año (se envuelve al periodo 1). HYPOTHESES PENDING VALIDATION.",
+  "hipotesis": true,
+  "rotaciones": [
+    {
+      "id": "cana_mono",
+      "nombre": "Sugarcane (ratoon, continuous)",
+      "actual_para": ["cana"],
+      "etapas": [{"cultivo": "cana", "siembra_mes": 1}]
+    },
+    {
+      "id": "sorgo_barbecho",
+      "nombre": "Sorghum (rainy season) + bare fallow",
+      "actual_para": ["sorgo"],
+      "etapas": [{"cultivo": "sorgo", "siembra_mes": 6}]
+    },
+    {
+      "id": "maiz_barbecho",
+      "nombre": "Maize (rainy season) + bare fallow",
+      "actual_para": ["maiz"],
+      "etapas": [{"cultivo": "maiz", "siembra_mes": 6}]
+    },
+    {
+      "id": "maiz_frijol",
+      "nombre": "Maize (rainy season) + common bean (dry season)",
+      "actual_para": [],
+      "etapas": [
+        {"cultivo": "maiz", "siembra_mes": 6},
+        {"cultivo": "frijol", "siembra_mes": 11}
+      ]
+    },
+    {
+      "id": "sorgo_canavalia",
+      "nombre": "Sorghum (rainy season) + jack bean cover",
+      "actual_para": [],
+      "etapas": [
+        {"cultivo": "sorgo", "siembra_mes": 6},
+        {"cultivo": "canavalia", "siembra_mes": 10}
+      ]
+    },
+    {
+      "id": "cacahuate_crotalaria",
+      "nombre": "Peanut (rainy season) + sunn hemp cover",
+      "actual_para": [],
+      "etapas": [
+        {"cultivo": "cacahuate", "siembra_mes": 6},
+        {"cultivo": "crotalaria", "siembra_mes": 10}
+      ]
+    },
+    {
+      "id": "cana_descanso",
+      "nombre": "Sugarcane renewal break: sunn hemp + common bean",
+      "actual_para": [],
+      "etapas": [
+        {"cultivo": "crotalaria", "siembra_mes": 6},
+        {"cultivo": "frijol", "siembra_mes": 9}
+      ]
+    }
+  ]
+}
