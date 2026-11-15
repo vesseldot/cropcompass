@@ -1,4 +1,4 @@
-# Field Shift: Morelos
+# CropCompass
 
 **NASA Space Apps Challenge 2026 · *Field Shift: Adapting Farms with NASA Data***
 

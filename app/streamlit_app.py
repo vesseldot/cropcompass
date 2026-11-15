@@ -23,7 +23,7 @@ from core import periodos as P
 from core import pronostico as F
 from core import rotaciones as R
 
-APP_TITLE = "Field Shift: Morelos"   # nombre provisional del proyecto (cambiar aquí)
+APP_TITLE = "CropCompass"   # nombre del proyecto
 
 # Paleta validada (skill dataviz, slots 1-4 en orden fijo; pasa CVD en claro y oscuro)
 COLOR_CRITERIO = {"climate": "#2a78d6", "water": "#eb6834", "soil": "#1baf7a", "income": "#eda100"}

@@ -28,7 +28,7 @@ def _problemas(at):
 def test_app_corre_en_cada_zona(zona):
     at = _correr(zona)
     assert _problemas(at) == []
-    assert at.title[0].value.endswith("Field Shift: Morelos")
+    assert at.title[0].value.endswith("CropCompass")
     assert len(at.tabs) == 4
 
 
