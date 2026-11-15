@@ -5,24 +5,28 @@
     {
       "id": "cana_mono",
       "nombre": "Sugarcane (ratoon, continuous)",
+      "nombre_es": "Caña de azúcar (soca, continua)",
       "actual_para": ["cana"],
       "etapas": [{"cultivo": "cana", "siembra_mes": 1}]
     },
     {
       "id": "sorgo_barbecho",
       "nombre": "Sorghum (rainy season) + bare fallow",
+      "nombre_es": "Sorgo (temporal) + barbecho desnudo",
       "actual_para": ["sorgo"],
       "etapas": [{"cultivo": "sorgo", "siembra_mes": 6}]
     },
     {
       "id": "maiz_barbecho",
       "nombre": "Maize (rainy season) + bare fallow",
+      "nombre_es": "Maíz (temporal) + barbecho desnudo",
       "actual_para": ["maiz"],
       "etapas": [{"cultivo": "maiz", "siembra_mes": 6}]
     },
     {
       "id": "maiz_frijol",
       "nombre": "Maize (rainy season) + common bean (dry season)",
+      "nombre_es": "Maíz (temporal) + frijol (secas)",
       "actual_para": [],
       "etapas": [
         {"cultivo": "maiz", "siembra_mes": 6},
@@ -32,6 +36,7 @@
     {
       "id": "sorgo_canavalia",
       "nombre": "Sorghum (rainy season) + jack bean cover",
+      "nombre_es": "Sorgo (temporal) + canavalia de cobertura",
       "actual_para": [],
       "etapas": [
         {"cultivo": "sorgo", "siembra_mes": 6},
@@ -41,6 +46,7 @@
     {
       "id": "cacahuate_crotalaria",
       "nombre": "Peanut (rainy season) + sunn hemp cover",
+      "nombre_es": "Cacahuate (temporal) + crotalaria de cobertura",
       "actual_para": [],
       "etapas": [
         {"cultivo": "cacahuate", "siembra_mes": 6},
@@ -50,6 +56,7 @@
     {
       "id": "cana_descanso",
       "nombre": "Sugarcane renewal break: sunn hemp + common bean",
+      "nombre_es": "Descanso de renovación de caña: crotalaria + frijol",
       "actual_para": [],
       "requiere_actual": ["cana"],
       "etapas": [

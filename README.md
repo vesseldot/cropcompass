@@ -23,11 +23,19 @@ they care about **water saving, soil health, income and climate fit**. The app t
    backtest: *"worked in X of 6 years"*, listing the years that failed, which crop failed, why, and whether the year was dry or wet.
 4. **Explains each rotation** in plain language: why it is suggested, the numbers behind it, benefits, risks, and information gaps.
 
+The interface is in **English** by default, with a **Spanish** option for local farmers (labels, charts, crop and
+rotation names, and the full explanations), a **dark mode**, and a **guide mode** that adds a short
+"how to read this" note to every tab.
+
 | Diagnosis | Forecast |
 |---|---|
 | ![Diagnosis](docs/screenshot_diagnosis.png) | ![Forecast](docs/screenshot_forecast.png) |
 
 ![Explanation of a rotation](docs/screenshot_explanation.png)
+
+*Spanish, dark mode and guide mode:*
+
+![Spanish, dark mode and guide mode](docs/screenshot_dark_spanish_guide.png)
 
 ## How it works
 
@@ -69,7 +77,8 @@ MODIS MOD13Q1 NDVI (16-day composites) ─────┼─► 21-day integrate
   - *Income*: local market strength of the crops.
 - **Backtest.** Suitability is recomputed with the real weather of each year 2020-2025. A year *worked* if **every
   crop** in the rotation reached suitability ≥ 0.6.
-- **Explanations** are deterministic English templates filled with the computed numbers. No language model runs in the app.
+- **Explanations** are deterministic templates (English, with a Spanish version) filled with the computed numbers.
+  No language model runs in the app, and both languages show the same numbers.
 
 ### Forecast evaluation
 
@@ -134,7 +143,7 @@ python -m core.periodos      # clean data + 21-day table (data/clean, data/proce
 python -m core.indicadores   # zone diagnosis (data/processed/diagnostico.json)
 python -m core.pronostico    # model comparison + 2026 forecast (~20 s)
 python -m core.rotaciones    # rotation ranking in the console
-pytest                       # 83 tests, including headless runs of the app for every zone
+pytest                       # 98 tests, including headless runs of the app (zones, Spanish, dark, guide)
 ```
 
 **Deploying on Streamlit Community Cloud:** push the repository to GitHub, create an app with main file
@@ -173,6 +182,8 @@ tests/          pytest suite             docs/            screenshots
 - **Heat** enters the suitability only through mean temperature. Days ≥ 35 °C are reported as a risk, not scored.
 - **Bare soil from NDVI.** A ~2 km window mixes land covers. Zacatepec never drops below NDVI 0.30 because sugarcane
   is perennial, so the bare-soil part of the soil criterion does not apply there.
+- **Dark mode switches a server-wide Streamlit theme option.** Each session re-applies its own choice, but two people
+  using opposite themes at the same moment may see a brief flicker.
 - The draft cover-crop sowing months (October) only partly overlap the bare-soil windows (January-May). Local practice should guide them.
 
 ## AI tools used

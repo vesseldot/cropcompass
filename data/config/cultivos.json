@@ -18,7 +18,8 @@
       "fija_nitrogeno": false,
       "cubre_suelo": 0.9,
       "mercado_local": 0.9,
-      "notas": "Ratoon cycle; local sugar mill gives a guaranteed buyer (hypothesis)."
+      "notas": "Ratoon cycle; local sugar mill gives a guaranteed buyer (hypothesis).",
+      "notas_es": "Ciclo de soca; el ingenio local da comprador seguro (hipótesis)."
     },
     {
       "id": "sorgo",
@@ -36,7 +37,8 @@
       "fija_nitrogeno": false,
       "cubre_suelo": 0.6,
       "mercado_local": 0.6,
-      "notas": "Drought tolerant; typical rainy-season crop in eastern Morelos."
+      "notas": "Drought tolerant; typical rainy-season crop in eastern Morelos.",
+      "notas_es": "Tolera sequía; cultivo típico de temporal en el oriente de Morelos."
     },
     {
       "id": "maiz",
@@ -54,7 +56,8 @@
       "fija_nitrogeno": false,
       "cubre_suelo": 0.6,
       "mercado_local": 0.7,
-      "notas": "Sensitive to dry spells at flowering."
+      "notas": "Sensitive to dry spells at flowering.",
+      "notas_es": "Sensible a rachas secas en la floración."
     },
     {
       "id": "frijol",
@@ -72,7 +75,8 @@
       "fija_nitrogeno": true,
       "cubre_suelo": 0.5,
       "mercado_local": 0.7,
-      "notas": "Heat during flowering reduces pod set."
+      "notas": "Heat during flowering reduces pod set.",
+      "notas_es": "El calor en la floración reduce el amarre de vainas."
     },
     {
       "id": "cacahuate",
@@ -90,7 +94,8 @@
       "fija_nitrogeno": true,
       "cubre_suelo": 0.7,
       "mercado_local": 0.6,
-      "notas": "Needs well-drained soil."
+      "notas": "Needs well-drained soil.",
+      "notas_es": "Necesita suelo bien drenado."
     },
     {
       "id": "canavalia",
@@ -108,7 +113,8 @@
       "fija_nitrogeno": true,
       "cubre_suelo": 0.9,
       "mercado_local": 0.1,
-      "notas": "Green manure; little direct market value."
+      "notas": "Green manure; little direct market value.",
+      "notas_es": "Abono verde; poco valor directo de mercado."
     },
     {
       "id": "crotalaria",
@@ -126,7 +132,8 @@
       "fija_nitrogeno": true,
       "cubre_suelo": 0.85,
       "mercado_local": 0.1,
-      "notas": "Fast cover; used as a break crop when renewing sugarcane."
+      "notas": "Fast cover; used as a break crop when renewing sugarcane.",
+      "notas_es": "Cobertura rápida; se usa como descanso al renovar la caña."
     }
   ]
 }

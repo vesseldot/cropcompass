@@ -31,6 +31,11 @@ CRITERIOS = ("climate", "water", "soil", "income")
 PESOS_DEFECTO = {"climate": 1.0, "water": 1.0, "soil": 1.0, "income": 1.0}
 
 
+def _texto(valor, defecto: str) -> str:
+    """valor si es un texto no vacío; si falta (None / NaN de pandas), el valor por defecto."""
+    return valor if isinstance(valor, str) and valor else defecto
+
+
 def normalizar_pesos(pesos: dict | None) -> dict:
     """Pesos >= 0 que suman 1. Si todos son 0 (o no hay), pesos iguales."""
     p = {c: max(0.0, float((pesos or {}).get(c, 0.0))) for c in CRITERIOS}
@@ -168,13 +173,15 @@ def rankear(zona: str, pesos: dict | None = None, serie: pd.DataFrame | None = N
                        "etapas": [{"cultivo_id": e["cultivo_id"], **r} for e, r in zip(etapas, res_o)]}
         ocupados = periodos_ocupados(etapas)
         resultados.append({
-            "id": rot["id"], "nombre": rot["nombre"], "zona": zona,
+            "id": rot["id"], "nombre": rot["nombre"], "nombre_es": _texto(rot.get("nombre_es"), rot["nombre"]),
+            "zona": zona,
             "es_actual": cultivo_actual in rot.get("actual_para", []),
             "puntaje": float(sum(contrib.values())),
             "criterios": criterios, "contribuciones": contrib, "pesos": pesos_n,
             "suelo_detalle": suelo_partes, "riego": riego,
             "etapas": [{
-                "cultivo_id": e["cultivo_id"], "cultivo": e["cultivo"].get("nombre", e["cultivo_id"]),
+                "cultivo_id": e["cultivo_id"], "cultivo": _texto(e["cultivo"].get("nombre"), e["cultivo_id"]),
+                "cultivo_es": _texto(e["cultivo"].get("nombre_es"), _texto(e["cultivo"].get("nombre"), e["cultivo_id"])),
                 "tipo": e["cultivo"].get("tipo"), "fija_nitrogeno": bool(e["cultivo"]["fija_nitrogeno"]),
                 "siembra_mes": e["siembra_mes"], "periodos": [p for _, p in e["periodos"]],
                 "inicio": P.etiquetas()[e["periodos"][0][1] - 1], "fin": P.etiquetas()[e["periodos"][-1][1] - 1],

@@ -74,6 +74,8 @@ ndvi, ndvi_obs (n.º de observaciones reales de NDVI en el periodo), ndvi_interp
 - `resumen.json` del equipo está en **cp1252**, no UTF-8.
 - Riego: las 3 zonas marcadas con riego (dato del equipo, por validar). Ojo: Axochiapan es "sorgo de temporal".
 - Cuautla: la celda MERRA-2 de POWER está a 2,120 m (valle ≈ 1,300 m) → temperaturas ~4 °C más frías. Mostrar como limitación.
+- Interfaz: inglés por defecto (requisito del concurso) con español opcional, modo oscuro y modo guía.
+  Todo texto visible va envuelto en `T("...")` y su traducción vive en `core/i18n.py` (lo revisa `tests/test_i18n.py`).
 - `cultivos.json` y `rotaciones.json` = borrador de Claude con rangos aproximados tipo EcoCrop → **hipótesis**.
 
 ## Reglas de trabajo

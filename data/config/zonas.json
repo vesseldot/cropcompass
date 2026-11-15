@@ -22,6 +22,7 @@
       "riego": true,
       "elevacion_celda_power_m": 2120.0,
       "aviso": "MERRA-2 cell elevation (2,120 m) is well above the farmed valley (~1,300 m); POWER temperatures here are likely ~4 °C too cold.",
+      "aviso_es": "La celda de MERRA-2 está a 2,120 m, muy por encima del valle agrícola (~1,300 m); las temperaturas de POWER aquí probablemente son ~4 °C más frías de lo real.",
       "archivo_power": "data/raw/satelitacos/Lotes/POWER_Point_Daily_20200101_20251231_018d81N_098d95W_UTC.csv"
     },
     {
