@@ -1,5 +1,5 @@
 {
-  "_nota": "Rotaciones anuales candidatas. Cada etapa = cultivo + mes de siembra (si se omite, usa siembra_mes de cultivos.json). 'actual_para' = cultivos para los que esta rotación representa la práctica actual (el motor la marca como 'current'). Una etapa puede cruzar el fin de año (se envuelve al periodo 1). HYPOTHESES PENDING VALIDATION.",
+  "_nota": "Rotaciones anuales candidatas. Cada etapa = cultivo + mes de siembra (si se omite, usa siembra_mes de cultivos.json). 'actual_para' = cultivos para los que esta rotación representa la práctica actual (el motor la marca como 'current'). Una etapa puede cruzar el fin de año (se envuelve al periodo 1). 'requiere_actual' (opcional) = la rotación solo se ofrece si el cultivo actual está en esa lista. HYPOTHESES PENDING VALIDATION.",
   "hipotesis": true,
   "rotaciones": [
     {
@@ -51,6 +51,7 @@
       "id": "cana_descanso",
       "nombre": "Sugarcane renewal break: sunn hemp + common bean",
       "actual_para": [],
+      "requiere_actual": ["cana"],
       "etapas": [
         {"cultivo": "crotalaria", "siembra_mes": 6},
         {"cultivo": "frijol", "siembra_mes": 9}

@@ -100,6 +100,9 @@ def validar_config(zonas: pd.DataFrame, cultivos: pd.DataFrame, rotaciones: list
     actuales_cubiertos = set()
     for r in rotaciones:
         actuales_cubiertos |= set(r.get("actual_para", []))
+        for c in r.get("requiere_actual", []):
+            if c not in ids:
+                problemas.append(f"rotación {r['id']}: requiere_actual con cultivo desconocido '{c}'")
         if not r.get("etapas"):
             problemas.append(f"rotación {r['id']}: sin etapas")
         for e in r.get("etapas", []):
