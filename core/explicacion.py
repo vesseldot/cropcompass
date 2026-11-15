@@ -170,8 +170,9 @@ def information_gaps(r: dict, diag: dict | None, zona_info: dict | None) -> list
         g.append("Irrigation availability is assumed for this zone; confirm it for your plot.")
     if any(d.get("usa_climatologia") for d in r["backtest"]["anios"]):
         g.append("Cycles that run into 2026 use the 2020-2025 average for those periods in the 2025 backtest.")
-    g.append("Satellite data describe the area around the zone point (rainfall ~10 km, temperature ~50 km, "
-             "NDVI 250 m), not your exact plot. Soil type, prices and costs are not included.")
+    g.append("Satellite data describe the area around the zone point (rain and temperature from NASA POWER grid "
+             "cells about 10-50 km across; NDVI from a ~2 km window), not your exact plot. Soil type, prices and "
+             "costs are not included.")
     return g
 
 

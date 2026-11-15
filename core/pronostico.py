@@ -116,6 +116,7 @@ def m_prophet(hist: pd.DataFrame, futuro: pd.DataFrame, var: str, log: bool = Fa
             df[f"lluvia_lag{k}"], fut[f"lluvia_lag{k}"] = rezago[:len(hist)], rezago[len(hist):]
             modelo.add_regressor(f"lluvia_lag{k}")
     modelo.fit(df.dropna(subset=["y"]))
+    np.random.seed(SEMILLA)   # Prophet muestrea al azar para yhat_lower/upper: semilla = resultados reproducibles
     fc = modelo.predict(fut)
     vals = [fc[c].to_numpy() for c in ("yhat", "yhat_lower", "yhat_upper")]
     if log:

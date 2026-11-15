@@ -70,6 +70,14 @@ def test_random_forest_da_intervalo_y_respeta_limites():
     assert (out[["yhat", "yhat_lower", "yhat_upper"]] >= 0).all().all()
 
 
+def test_prophet_intervalo_reproducible():
+    df = _zona()
+    hist, fut = df.iloc[:85], df.iloc[85:][["anio", "periodo", "fecha_inicio"]]
+    a = F.m_prophet(hist, fut, "precip_mm_21d")
+    b = F.m_prophet(hist, fut, "precip_mm_21d")
+    assert np.allclose(a.to_numpy(), b.to_numpy())
+
+
 def test_prophet_ndvi_con_regresores():
     df = _zona()
     hist, fut = df.iloc[:85], df.iloc[85:][["anio", "periodo", "fecha_inicio"]]
