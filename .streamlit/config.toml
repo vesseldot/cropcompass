@@ -1,9 +1,9 @@
 [theme]
-# Solo base y color de selección: el modo oscuro de la app cambia theme.base y theme.primaryColor en caliente,
-# y un backgroundColor/textColor fijo lo rompería. Los demás tokens viven en app/estilos.css.
+# Tema base claro y global (lo comparten todos los usuarios del servidor, así que la app NO lo cambia).
+# El modo oscuro es por sesión: CSS en app/estilos.css bajo body:has(.modo-oscuro). Los tokens viven ahí.
 base = "light"
 # Color de selección de los controles (sliders, radios, pestañas): --forest-700. El naranja de acción
-# (--action-orange) solo lo lleva el botón Analyze vía app/estilos.css. La app lo cambia en modo oscuro.
+# (--action-orange) solo lo lleva el botón Analyze vía app/estilos.css. En modo oscuro el CSS lo aclara (#8FC79A).
 primaryColor = "#2F4A32"
 
 [server]

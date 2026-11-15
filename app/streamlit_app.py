@@ -17,7 +17,6 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
-from streamlit import config as st_config
 
 from core import datos
 from core import explicacion as X
@@ -61,12 +60,9 @@ P_CORTAS = [f"P{p:02d}" for p in range(1, 18)]
 st.set_page_config(page_title=APP_TITLE, page_icon="🌱", layout="wide", initial_sidebar_state="collapsed")
 
 # Base visual (DESIGN.md §3-5): un solo bloque CSS, cargado una vez por ejecución. Se rellena más abajo,
-# cuando ya se sabe si el modo oscuro está activo (cambia los tokens de panel y hoja).
+# cuando ya se sabe si esta sesión pidió modo oscuro (entonces lleva además el marcador .modo-oscuro).
 slot_css = st.empty()
 CSS_BASE = Path(__file__).with_name("estilos.css").read_text(encoding="utf-8")
-CSS_OSCURO = (":root{--panel:rgba(18,24,19,0.94);--panel-solid:#151b16;--sheet:#0e1117;--accent:#8FC79A;"
-              "--ink-2:#c9d3c4;--muted-strong:#b4bcae;--forest-700:#8FC79A;--card:#161b22;--line:rgba(255,255,255,0.14);"
-              "--muted:#9aa395;--line-hover:rgba(143,199,154,0.45);--shadow-panel:0 8px 32px rgba(0,0,0,0.5);}")
 
 # Esqueleto de la página (DESIGN.md §6): cabecera, mapa héroe con el panel flotante encima, hoja de resultados.
 # Se declaran aquí, en orden visual, y se rellenan donde estén sus datos.
@@ -130,7 +126,8 @@ sel = st.session_state.setdefault("sel", {
     "variable": "precip_mm_21d"})
 
 with panel:
-    ajustes = st.popover("Settings / Ajustes", use_container_width=True)
+    # expander y no popover: en Streamlit 1.40 el popover se abría desbordado fuera de la pantalla
+    ajustes = st.expander("Settings / Ajustes")
 with ajustes:
     nombres_idioma = list(i18n.IDIOMAS)
     idioma = i18n.IDIOMAS[st.selectbox("Language / Idioma", nombres_idioma, key="idioma")]
@@ -169,27 +166,30 @@ def nc(e: dict) -> str:
 with ajustes:
     oscuro = st.toggle(T("Dark mode"), value=defs["oscuro"], key=f"oscuro_{idioma}")
     guia = st.toggle(T("Guide mode"), value=defs["guia"], key=f"guia_{idioma}")
-sel.update(oscuro=oscuro, guia=guia)
+sel.update(oscuro=oscuro, guia=guia)       # 'sel' vive en st.session_state: la preferencia es de esta sesión
 
-# Tema: Streamlit envía el tema al navegador al inicio de cada ejecución, así que se cambia la opción y
-# se vuelve a ejecutar. La opción es del servidor: cada sesión la corrige si otra la cambió.
-# La re-ejecución se hace AL FINAL del script: si se interrumpe antes de dibujar el formulario,
-# Streamlit descarta el estado de los controles no dibujados y se pierde la zona elegida.
-_base = "dark" if oscuro else "light"
-# Color de selección (sliders, radios, pestaña activa): verde bosque, NO naranja. El naranja queda solo para
-# Analyze (DESIGN.md §3, lo pinta estilos.css). En oscuro, un verde claro para mantener contraste AA.
-_primario = "#8FC79A" if oscuro else "#2F4A32"
-try:
-    _cambiar_tema = (st_config.get_option("theme.base") != _base
-                     or st_config.get_option("theme.primaryColor") != _primario)
-    if _cambiar_tema:
-        st_config.set_option("theme.base", _base)
-        st_config.set_option("theme.primaryColor", _primario)
-except Exception:
-    _cambiar_tema = False
-
+# Modo oscuro POR SESIÓN. El tema de Streamlit (theme.base) es una opción global del servidor: cambiarla
+# afectaría a todos los usuarios conectados. Por eso el tema base queda siempre claro (config.toml) y el
+# modo oscuro es CSS: estilos.css define sus colores bajo `body:has(.modo-oscuro)`, y solo esta sesión
+# recibe el marcador <div class="modo-oscuro">. Las gráficas Plotly se ajustan aparte (tema_fig).
 PAL = PALETAS[oscuro]
-slot_css.markdown(f"<style>{CSS_BASE}{CSS_OSCURO if oscuro else ''}</style>", unsafe_allow_html=True)
+slot_css.markdown(f"<style>{CSS_BASE}</style>" + ('<div class="modo-oscuro"></div>' if oscuro else ""),
+                  unsafe_allow_html=True)
+
+
+def tema_fig(fig: go.Figure) -> go.Figure:
+    """Colores de texto, rejilla y fondo de la gráfica según el modo de esta sesión (Plotly no lee el CSS)."""
+    if oscuro:
+        tinta, rejilla = "#c3c2b7", "rgba(255,255,255,0.10)"
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color=tinta,
+                          legend_font_color=tinta, hoverlabel=dict(bgcolor="#262730", font_color="#fafafa"))
+        fig.update_xaxes(gridcolor=rejilla, zerolinecolor=rejilla, linecolor=rejilla, tickfont_color=tinta,
+                         title_font_color=tinta)
+        fig.update_yaxes(gridcolor=rejilla, zerolinecolor=rejilla, linecolor=rejilla, tickfont_color=tinta,
+                         title_font_color=tinta)
+        fig.update_annotations(font_color=tinta)
+        fig.update_traces(colorbar=dict(tickfont_color=tinta, title_font_color=tinta), selector=dict(type="heatmap"))
+    return fig
 
 
 def nota_guia(nombre: str) -> None:
@@ -493,7 +493,7 @@ with tab_diag:
         diag = diagnostico(zona, umbral_ndvi)      # los chips de métricas están arriba, en la cabecera de la hoja
         izq, der = st.columns([3, 1])
         with izq:
-            st.plotly_chart(figura_diagnostico(diag), use_container_width=True, key="fig_diag")
+            st.plotly_chart(tema_fig(figura_diagnostico(diag)), use_container_width=True, key="fig_diag")
         with der:
             if isinstance(aviso_zona, str):
                 st.warning(aviso_zona, icon="⚠️")
@@ -529,7 +529,7 @@ with tab_diag:
                 st.caption(T("No bare-soil periods detected, so no free windows."))
         st.markdown(T("**NDVI per year and 21-day period** (brighter = greener)") if oscuro
                     else T("**NDVI per year and 21-day period** (darker = greener)"))
-        st.plotly_chart(figura_ndvi_anual(sz), use_container_width=True, key="fig_ndvi_anual")
+        st.plotly_chart(tema_fig(figura_ndvi_anual(sz)), use_container_width=True, key="fig_ndvi_anual")
         if diag["periodos_sin_ndvi"]:
             st.warning(T("No data: {n} periods have no NDVI.").format(n=diag["periodos_sin_ndvi"]))
     except Exception as e:
@@ -554,7 +554,7 @@ with tab_prono:
                   T("{pct:.0f}% error").format(pct=-mejor["mejora_vs_baseline_pct"]), delta_color="inverse",
                   help=T("Mean absolute error on the held-out last 20 % of periods"))
         m3.metric(T("Forecast horizon"), T("17 periods ({anio})").format(anio=anio))
-        st.plotly_chart(figura_pronostico(zona, var, prono, prueba), use_container_width=True, key="fig_prono")
+        st.plotly_chart(tema_fig(figura_pronostico(zona, var, prono, prueba)), use_container_width=True, key="fig_prono")
         st.caption(T("Interval: {intervalo}. Train = first {n_train} periods, test = last {n_test} (temporal split). "
                      "Future rain/temperature used as model inputs = 2020-2025 average for that period. "
                      "R² for rainfall is unstable in the dry season: read it with MAE.").format(
@@ -596,7 +596,7 @@ with tab_rot:
             st.info(T("Using your edited crop parameters (Data & Method tab)."), icon="✏️")
         st.markdown(T("**{n} candidate rotations** for {zona}, scored 0-100 with your priorities. "
                       "The current rotation is the reference.").format(n=len(res), zona=info["nombre"]))
-        st.plotly_chart(figura_desglose(res), use_container_width=True, key="fig_desglose")
+        st.plotly_chart(tema_fig(figura_desglose(res)), use_container_width=True, key="fig_desglose")
         with st.expander(T("Score breakdown as a table")):
             st.dataframe(pd.DataFrame([{T("Rank"): r["rango"], T("Rotation"): nr(r), T("Current"): r["es_actual"],
                                         T("Score"): round(r["puntaje"], 1),
@@ -605,7 +605,7 @@ with tab_rot:
                                        for r in res]), hide_index=True, use_container_width=True)
 
         for r in res:
-            with st.container(border=True, key=f"rot_{r['id']}"):
+            with st.container(key=f"rot_{r['id']}"):     # el borde lo pone estilos.css (1.40 lo duplicaba)
                 c1, c2, c3 = st.columns([2.0, 2.2, 2.6])
                 with c1:
                     marca = f'<span class="chip-actual">{escape(T("current"))}</span>' if r["es_actual"] else ""
@@ -637,7 +637,7 @@ with tab_rot:
                         for c in ("climate", "water", "soil", "income")]), unsafe_allow_html=True)
                 with c3:
                     st.caption(T("Crop calendar (21-day periods)"))
-                    st.plotly_chart(figura_calendario(r), use_container_width=True, key=f"cal_{r['id']}",
+                    st.plotly_chart(tema_fig(figura_calendario(r)), use_container_width=True, key=f"cal_{r['id']}",
                                     config={"displayModeBar": False})
                 exp = r["explicacion"]
                 with st.expander(T("Why this rotation? Evidence, benefits, risks and information gaps")):
@@ -681,6 +681,3 @@ with slot_mapa:
 st.divider()
 st.caption(T("NASA Space Apps Challenge 2026 · Field Shift: Adapting Farms with NASA Data · "
              "This tool supports, not replaces, farmer judgment."))
-
-if _cambiar_tema:      # ya se dibujaron todos los controles: ahora sí, aplicar el tema nuevo
-    st.rerun()

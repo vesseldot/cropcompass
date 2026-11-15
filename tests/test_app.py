@@ -38,12 +38,9 @@ def _textos(at):
     return " ".join([m.value for m in at.markdown] + [c.value for c in at.caption] + [i.value for i in at.info])
 
 
-@pytest.fixture(autouse=True)
-def _tema_claro():
-    """El modo oscuro cambia una opción global de Streamlit: se restaura después de cada prueba."""
-    yield
-    from streamlit import config
-    config.set_option("theme.base", "light")
+def _oscuro(at) -> bool:
+    """¿Esta sesión recibió el marcador de modo oscuro? (el CSS solo se activa donde está)."""
+    return any('</style><div class="modo-oscuro"></div>' in m.value for m in at.markdown)
 
 
 @pytest.mark.parametrize("zona", ["zacatepec", "cuautla", "axochiapan"])
@@ -88,8 +85,9 @@ def test_app_modo_oscuro_y_guia(idioma):
     assert _problemas(at) == []
     guia = "Guide: how to use CropCompass" if idioma == "English" else "Guía: cómo usar CropCompass"
     assert guia in _textos(at)
+    assert _oscuro(at)
     from streamlit import config
-    assert config.get_option("theme.base") == "dark"
+    assert config.get_option("theme.base") == "light"       # el tema global del servidor no se toca
 
 
 def test_cambiar_de_tema_conserva_la_zona_elegida():
@@ -104,3 +102,16 @@ def test_cambiar_de_tema_conserva_la_zona_elegida():
 
 def test_sin_modo_guia_no_hay_notas():
     assert "Guide: how to use CropCompass" not in _textos(_correr("axochiapan"))
+
+
+def test_modo_oscuro_es_por_sesion():
+    """Dos usuarios a la vez: el que activa el modo oscuro no se lo cambia al otro."""
+    from streamlit import config
+    a = _correr("zacatepec")
+    b = _correr("cuautla")
+    a.toggle(key="oscuro_en").set_value(True)
+    a.run()
+    b.run()                                                   # el otro usuario sigue usando la app
+    assert _oscuro(a) and not _oscuro(b)
+    assert config.get_option("theme.base") == "light"
+    assert _problemas(a) == [] and _problemas(b) == []

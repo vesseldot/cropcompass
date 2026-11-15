@@ -57,7 +57,7 @@ div[data-baseweb="select"] > div, div[data-baseweb="input"], textarea,
   transition: background-color 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease),
     box-shadow 150ms var(--ease);
 }
-[data-testid="stBaseButton-secondary"]:hover, [data-testid="stPopover"] button:hover {
+[data-testid="stBaseButton-secondary"]:hover {
   border-color: var(--accent); color: var(--accent); background-color: rgba(47, 74, 50, 0.04);
 }
 [data-testid="stVerticalBlockBorderWrapper"] { border-radius: var(--r-card); border-color: var(--line); }
@@ -138,6 +138,10 @@ a { text-underline-offset: 3px; }
   padding: var(--s3) var(--s3) var(--s2); background: var(--sheet); border: 1px solid var(--line);
   border-radius: var(--r-panel);
 }
+/* Streamlit 1.40 fija el ancho de cada elemento en px al ancho del bloque, sin restar el relleno de la hoja:
+   el insight y los chips se salían 25 px por la derecha. */
+.st-key-hoja :is([data-testid="stElementContainer"], [data-testid="stMarkdown"]),
+.st-key-panel_analisis [data-testid="stMarkdown"] { width: 100% !important; }
 [data-baseweb="tab-list"] { gap: var(--s1); }
 [data-baseweb="tab"] { font-weight: 600; border-radius: var(--r-control) var(--r-control) 0 0; }
 [data-baseweb="tab"] p { font-size: 15px; }
@@ -165,6 +169,7 @@ a { text-underline-offset: 3px; }
 
 /* Tarjeta de rotación (6.4) */
 [class*="st-key-rot_"] { background: var(--card); border: 1px solid var(--line) !important; border-radius: var(--r-card);
+  padding: var(--s2);
   box-shadow: none; transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease); }
 [class*="st-key-rot_"]:hover { border-color: var(--line-hover) !important; box-shadow: 0 2px 12px rgba(28, 42, 30, 0.06); }
 .rot-titulo { font-size: 22px; font-weight: 700; line-height: 1.2; }
@@ -183,3 +188,59 @@ a { text-underline-offset: 3px; }
 .leyenda { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: var(--s1); font-size: 13px; }
 .ley { display: inline-flex; align-items: center; gap: 6px; }
 .ley i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+/* ===================== Modo oscuro POR SESIÓN =====================
+   El tema de Streamlit es global del servidor (theme.base), así que no se toca: queda claro para todos.
+   Cuando una sesión activa el modo oscuro, la app le inyecta un div con la clase modo-oscuro y estas reglas,
+   escritas bajo body:has(.modo-oscuro), solo aplican en esa pestaña. Van al final para ganar empates. */
+body:has(.modo-oscuro) {
+  color-scheme: dark;
+  --texto: #e6e6e1; --fondo: #0e1117; --campo: #262730; --campo-borde: rgba(255, 255, 255, 0.18);
+  --panel: rgba(18, 24, 19, 0.94); --panel-solid: #151b16; --sheet: #0e1117; --card: #161b22;
+  --accent: #8FC79A; --ink-2: #c9d3c4; --muted: #9aa395; --muted-strong: #b4bcae; --forest-700: #8FC79A;
+  --line: rgba(255, 255, 255, 0.14); --line-hover: rgba(143, 199, 154, 0.45);
+  --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.5);
+  background: var(--fondo); color: var(--texto);
+}
+body:has(.modo-oscuro) .stApp, body:has(.modo-oscuro) [data-testid="stAppViewContainer"],
+body:has(.modo-oscuro) [data-testid="stMain"] { background: var(--fondo); color: var(--texto); }
+body:has(.modo-oscuro) :is(h1, h2, h3, h4, h5, h6, li, label, summary, [data-testid="stMarkdownContainer"] p,
+  [data-testid="stWidgetLabel"] p, [data-baseweb="tab"] p, [data-testid="stMetricValue"], [data-testid="stMetricLabel"] p,
+  [data-testid="stExpander"] summary p, [data-testid="stCheckbox"] p, .rot-titulo) { color: var(--texto); }
+body:has(.modo-oscuro) .insight p { color: var(--ink-2); }
+/* Campos y menús desplegables (los menús se pintan fuera de .stApp, por eso body) */
+body:has(.modo-oscuro) :is(div[data-baseweb="select"] > div, div[data-baseweb="input"], div[data-baseweb="base-input"],
+  input, textarea) { background-color: var(--campo) !important; color: var(--texto) !important; border-color: var(--campo-borde) !important; }
+body:has(.modo-oscuro) div[data-baseweb="select"] :is(div, span, svg) { color: var(--texto); }
+body:has(.modo-oscuro) :is([data-baseweb="popover"] ul, [data-baseweb="menu"], [role="listbox"]) { background-color: var(--campo) !important; }
+body:has(.modo-oscuro) :is(li[role="option"], [role="option"] div) { color: var(--texto) !important; }
+body:has(.modo-oscuro) li[role="option"]:hover, body:has(.modo-oscuro) li[aria-selected="true"] { background-color: #353746 !important; }
+/* Botones secundarios (Settings, Reset) y expanders */
+body:has(.modo-oscuro) [data-testid="stBaseButton-secondary"] {
+  background-color: #1b1f27; color: var(--texto); border-color: var(--campo-borde);
+}
+body:has(.modo-oscuro) [data-testid="stBaseButton-secondary"]:hover {
+  border-color: var(--accent); color: var(--accent); background-color: rgba(143, 199, 154, 0.08);
+}
+body:has(.modo-oscuro) [data-testid="stExpander"] details { background: transparent; border-color: var(--line); }
+body:has(.modo-oscuro) [data-testid="stExpander"] summary:hover p { color: var(--accent); }
+/* Color de selección: el verde bosque del tema claro no se ve sobre fondo oscuro */
+body:has(.modo-oscuro) [data-testid="stSlider"] [role="slider"] { background-color: var(--accent); }
+body:has(.modo-oscuro) [data-testid="stSliderThumbValue"] { color: var(--accent); }
+body:has(.modo-oscuro) [data-baseweb="tab"][aria-selected="true"] p { color: var(--accent); }
+body:has(.modo-oscuro) [data-baseweb="tab-border"] { background-color: var(--line); }
+/* Avisos: el fondo translúcido del tema claro queda oscuro; texto claro para que se lea */
+body:has(.modo-oscuro) [data-testid="stAlertContainer"] { background-color: rgba(255, 255, 255, 0.06); }
+body:has(.modo-oscuro) [data-testid="stAlertContainer"] :is(p, li, div) { color: var(--texto); }
+body:has(.modo-oscuro) [data-testid="stCaptionContainer"],
+body:has(.modo-oscuro) [data-testid="stCaptionContainer"] p { color: var(--muted); }
+body:has(.modo-oscuro) .st-key-panel_analisis [data-testid="stCaptionContainer"] p { color: var(--muted-strong); }
+body:has(.modo-oscuro) ::selection { background: rgba(232, 181, 58, 0.45); color: #fff; }
+/* Radio de BaseWeb: un aro (div exterior) con un relleno (div interior). Sin marcar el relleno es blanco. */
+body:has(.modo-oscuro) [data-baseweb="radio"] > div:first-of-type { background-color: rgba(255, 255, 255, 0.35) !important; }
+body:has(.modo-oscuro) [data-baseweb="radio"]:has(input:not(:checked)) > div:first-of-type > div { background-color: var(--campo) !important; }
+body:has(.modo-oscuro) [data-baseweb="radio"]:has(input:checked) > div:first-of-type { background-color: var(--accent) !important; }
+body:has(.modo-oscuro) [data-baseweb="radio"]:has(input:checked) > div:first-of-type > div { background-color: var(--fondo) !important; }
+body:has(.modo-oscuro) [data-testid="stTooltipIcon"] svg, body:has(.modo-oscuro) [data-testid="stTooltipHoverTarget"] svg {
+  color: var(--muted); stroke: var(--muted);
+}
